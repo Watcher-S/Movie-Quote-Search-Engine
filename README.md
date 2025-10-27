@@ -32,11 +32,6 @@ source .venv/bin/activate
   2. for each movie page, find the "Read Script" link and follow it (skips PDF links).
   3. extract script text from the page (looks for `<pre>` text), perform light cleaning (remove parenthetical stage directions, repeated blank lines, some scene markers), and save results.
   4. existing CSVs are detected and preserved — new scripts are appended; failed links are saved to `imsdb_failed.csv`.
-- important imports used and why:
-  - `requests` — for HTTP requests to IMSDb.
-  - `bs4` (BeautifulSoup) — HTML parsing and extracting script content.
-  - `pandas` — storing and saving script records as CSV.
-  - `re`, `time`, `os` — text cleaning, polite delays, and file checks.
 
 usage:
 
@@ -73,13 +68,6 @@ python matching.py
 python matching.py
 # choose option 1 when prompted (results will be written to output.txt)
 ```
-
-important imports used and why:
-- `pandas`, `numpy` — data loading and basic array operations.
-- `sklearn.feature_extraction.text.TfidfVectorizer` — build TF-IDF vectors from scripts.
-- `sklearn.metrics.pairwise.cosine_similarity` — compute similarity between a query and scripts.
-- `re` — normalization for keyword matching.
-
 ---
 
 This project was prepared for CS410 (Fall 2025) by the group listed above.
