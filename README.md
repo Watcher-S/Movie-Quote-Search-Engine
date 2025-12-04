@@ -47,15 +47,26 @@ Notes:
 
 ## how `matching.py` works
 
-- purpose: provide a simple search interface over the saved scripts to find likely movies for a given quote.
-- main idea: hybrid retrieval that prefers exact/fuzzy substring matches but falls back to TF-IDF similarity.
+- purpose: provide a robust search interface over the saved scripts to find likely movies for a given quote.
+- main idea: hybrid retrieval that prefers exact/fuzzy substring matches, and blends TF‑IDF with BM25 scores for better partial phrase handling.
 - main steps:
   1. load `imsdb_scripts_sample.csv` into a pandas DataFrame.
-  2. build a TF-IDF matrix over the script text using scikit-learn's `TfidfVectorizer`.
-  3. provide two search modes:
-     - keyword search: normalize text (lowercase, remove punctuation) and count fuzzy substring occurrences — returns exact match hits first.
-     - tf-idf search: compute cosine similarity between a query and all script vectors; returns top similar movies.
-  4. hybrid search: return keyword matches if present; otherwise return TF-IDF matches.
+  2. build lexical indices:
+    - TF‑IDF matrix using scikit‑learn's `TfidfVectorizer` with bigrams and sublinear TF.
+    - BM25 index using `rank_bm25` over tokenized scripts.
+  3. search modes:
+    - keyword search: normalize text (lowercase, remove punctuation) and count substring occurrences — returns exact match hits first.
+    - tf‑idf search: compute cosine similarity between a query and all script vectors; returns top similar movies.
+    - bm25 search: score tokenized query with BM25 for strong lexical recall and phrase sensitivity.
+  4. hybrid search (`combined_search`):
+    - blends normalized TF‑IDF, BM25, and fuzzy token‑set ratio (`rapidfuzz`) with weights.
+    - computes fuzzy scores only on a candidate set (union of top TF‑IDF and BM25) for speed.
+    - final ranking is a weighted sum: `w_tfidf * tfidf + w_bm25 * bm25 + w_fuzzy * fuzzy`.
+
+### tuning
+- adjust weights in `combined_search` (defaults: `w_tfidf=0.4`, `w_bm25=0.4`, `w_fuzzy=0.2`).
+- increase `ngram_range` in TF‑IDF for more phrase sensitivity (at memory cost).
+- change candidate `top_k` size for fuzzy scoring trade‑off between quality and speed.
 
 usage options:
 
@@ -68,6 +79,15 @@ python matching.py
 python matching.py
 # choose option 1 when prompted (results will be written to output.txt)
 ```
+
+### dependencies
+The script will attempt to auto‑install missing packages, but you can install manually:
+
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install scikit-learn pandas numpy rank-bm25 rapidfuzz
+```
+
 ---
 
 This project was prepared for CS410 (Fall 2025) by the group listed above.
